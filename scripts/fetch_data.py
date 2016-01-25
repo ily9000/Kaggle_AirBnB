@@ -66,6 +66,9 @@ class clfInput():
             users = sessionsDf.groupby('device_type')['user_id'].unique()[dev]
             self.allDf.loc[users, dev] = 1
 
+        actionsDf = pd.read_pickle('../data/actions.p')
+        self.allDf = pd.concat([self.allDf, actionsDf], axis = 1, join = 'outer')
+
     def split_data(self):
         """Split the combined dataframe into training and test sets.
         Create the training and test arrays for the classifer."""
@@ -107,14 +110,20 @@ class clfInput():
 
         #age
         #av = self.allDf.age.values
-        self.allDf.loc[self.allDf.query(1000 > 'age' > 100].index, 'age'] = 105
-        self.allDf.loc[self.allDf.query('age' > 1000].index, 'age'] = 110
+        #self.allDf.loc[self.allDf.query(1000 > 'age' > 100].index, 'age'] = 105
+        #self.allDf.loc[self.allDf.query('age' > 1000').index, 'age'] = 110
         #self.allDf['age'] = np.where(np.logical_or(av<14, av>100), -1, av)
 
     def _rmbrowsers():
         """remove browsers only found in either test or training set"""
         pass
 
+    def binarize_targets(self, true_cntr = 'NDF'):
+        """split targets into NDF and non NDF"""
+        
+        self.targets = self.trainDf['country_destination']
+        self.train_Y = (self.targets == 'NDF').astype(int)
+    
     def one_hot(self):
         """one hot encoding of features"""
 
