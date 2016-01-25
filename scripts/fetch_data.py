@@ -109,10 +109,10 @@ class clfInput():
         self.allDf.drop('timestamp_first_active', axis=1, inplace = True)
 
         #age
+        self.allDf.loc[self.allDf.query('1000 > age > 100').index, 'age'] = 105
+        self.allDf.loc[self.allDf.query('age > 1000').index, 'age'] = 110
         #av = self.allDf.age.values
-        #self.allDf.loc[self.allDf.query(1000 > 'age' > 100].index, 'age'] = 105
-        #self.allDf.loc[self.allDf.query('age' > 1000').index, 'age'] = 110
-        #self.allDf['age'] = np.where(np.logical_or(av<14, av>100), -1, av)
+        self.allDf.loc[self.allDf['age']<15, 'age'] = -1
 
     def _rmbrowsers():
         """remove browsers only found in either test or training set"""
