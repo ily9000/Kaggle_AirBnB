@@ -9,14 +9,14 @@ import xgboost as xgb
 import pickle
 import fetch_data
 
-def full_cv(train_X, train_Y, fname):
+def full_cv(train_X, train_Y, fname, param, nrounds):
 
     xg_train = xgb.DMatrix(train_X, label = train_Y, missing = -1)
-    scores_df = xgb.cv(param, xg_train, nrounds, nfold = 5, feval = calc_ndcg.evalerror, 
+    scores_df = xgb.cv(param, xg_train, nrounds, nfold = 10, feval = calc_ndcg.evalerror, 
         early_stopping_rounds = 10)
     scores_df.to_pickle('cv_results/'+fname)
 
-def custom_folds(xgbInput):
+def cv_bymonth(xgbInput):
     """Select folds for cross validation as all cases that occurred in a given with month 
     in 2014, with sessions data.
     Only cases in 2014 have sessions data and the last test case is on June 30.
@@ -46,8 +46,8 @@ def main():
     results = {}
     cv_train = pd.DataFrame()
     cv_valid = pd.DataFrame()
-    nrounds = 35
-    for train_indx, valid_indx in cv_bydate(xgbInput):
+    nrounds = 40
+    for train_indx, valid_indx in cv_bymonth(xgbInput):
         dtrain = xgb.DMatrix(xgbInput.train_X[train_indx], label = xgbInput.train_Y[train_indx],
                     missing = -1)
         dvalid = xgb.DMatrix(xgbInput.train_X[valid_indx], label = xgbInput.train_Y[valid_indx],
@@ -56,8 +56,10 @@ def main():
         bst = xgb.train(param, dtrain, nrounds, evallist, feval = calc_ndcg.evalerror, evals_result = results)
         cv_train = pd.concat([cv_train, pd.Series(results['train']['error'])], axis = 1)
         cv_valid = pd.concat([cv_valid, pd.Series(results['eval']['error'])], axis = 1)
-        pd.to_pickle(cv_train, 'cv_results/sessions_e20_25n/train_err.p')
-        pd.to_pickle(cv_valid, 'cv_results/sessions_e20_25n/validate_err.p')
+        pd.to_pickle(cv_train, 'cv_results/sessions_e20_25n/tr_err_av.p')
+        pd.to_pickle(cv_valid, 'cv_results/sessions_e20_25n/val_err_av.p')
 
+    full_cv(xgbInput.train_X, xgbInput.train_Y, 'fulltr_err_av.p', param, nrounds)    
+        
 if __name__ == '__main__':
         main()    

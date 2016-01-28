@@ -11,7 +11,8 @@ Used the features and the feature engineering from the kaggle forked script.
 This model included features for booking request, message post, number of actions, total secs elapsed, and if one of the top five devices, (Mac Desktop, Windows Desktop, iPhone, Android Phone, and iPad Tablet) were used.
 
 	1. fulldata.p:
-		- 5 fold CV on the entire data with parameters used for 'sessions_e20_25n' model. Run using xgb.cv, with early_stopping_rounds = 10, and nround = 35.  
+		- 5 fold CV on the entire data with parameters used for 'sessions_e20_25n' model. 
+		- Run using xgb.cv, with early_stopping_rounds = 10, and nround = 35.  
 		- param['eta'] = 0.20, param['max_depth'] = 6, param['subsample'] = .5, param['col_sample_bytree'] = .6
 	2. 'train_err.p', 'validate_err.p' (training set error, validation set error)  
 		- Custom cross validation using watchlist argument and the below condition to query the training data. Iterate through `i` and set the validation fold as the cases form that month.   
@@ -19,3 +20,9 @@ This model included features for booking request, message post, number of action
 		- param['eta'] = 0.20, param['max_depth'] = 6, param['subsample'] = .5, param['col_sample_bytree'] = .6, nrounds = 35  
 	3. 'train_err2.p', 'validate_err2.p'
 		- Repeated above but ran with eta = .05, and for nrounds = 200.
+		- Was only done for one month.
+	4. Let's stop truncating the age at 100.
+		-month to month CV on sessions data:
+
+####actions_e20/
+This model contains all the sessions features from the previous model but we also include all action which have unique action type and action detail. The action must be found in both the training set and test set. 
