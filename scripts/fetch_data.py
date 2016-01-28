@@ -111,7 +111,6 @@ class clfInput():
         #age
         self.allDf.loc[self.allDf.query('1000 > age > 100').index, 'age'] = 105
         self.allDf.loc[self.allDf.query('age > 1000').index, 'age'] = 110
-        #av = self.allDf.age.values
         self.allDf.loc[self.allDf['age']<16, 'age'] = -1
 
     def _rmbrowsers():
