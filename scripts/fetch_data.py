@@ -66,8 +66,8 @@ class clfInput():
             users = sessionsDf.groupby('device_type')['user_id'].unique()[dev]
             self.allDf.loc[users, dev] = 1
 
-        actionsDf = pd.read_pickle('../data/actions.p')
-        self.allDf = pd.concat([self.allDf, actionsDf], axis = 1, join = 'outer')
+        #actionsDf = pd.read_pickle('../data/actions.p')
+        #self.allDf = pd.concat([self.allDf, actionsDf], axis = 1, join = 'outer')
 
     def split_data(self):
         """Split the combined dataframe into training and test sets.
@@ -112,7 +112,7 @@ class clfInput():
         self.allDf.loc[self.allDf.query('1000 > age > 100').index, 'age'] = 105
         self.allDf.loc[self.allDf.query('age > 1000').index, 'age'] = 110
         #av = self.allDf.age.values
-        self.allDf.loc[self.allDf['age']<15, 'age'] = -1
+        self.allDf.loc[self.allDf['age']<16, 'age'] = -1
 
     def _rmbrowsers():
         """remove browsers only found in either test or training set"""
