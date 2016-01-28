@@ -1,5 +1,6 @@
 ####noSessions/
-Used the features and the feature engineering from the kaggle forked script.  
+Used the features and the feature engineering from the kaggle forked script.
+  
 	1. cv_results:
 		Used sk_learn Kfold and did an intiial grid search by using a for loop to better understand the parameters.
 	2. params.p  scores.p
