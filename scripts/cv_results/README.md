@@ -1,14 +1,15 @@
 ####noSessions/
 Used the features and the feature engineering from the kaggle forked script.
-  
+
 	1. cv_results:
-		Used sk_learn Kfold and did an intiial grid search by using a for loop to better understand the parameters.
+		Used sk_learn Kfold and did an intial grid search by doing a for loop to better understand the parameters.
 	2. params.p  scores.p
 		Grid parameter search for xgboost model with sklearn ParameterGrid. Row-wise correspondence betweeen parameters in params.p and cross-val error in scores.p. Ran using xgb.cv, with early_stopping_rounds = 10, and nround = 100
 
  
 ####sessions_e20_25n/
 This model included features for booking request, message post, number of actions, total secs elapsed, and if one of the top five devices, (Mac Desktop, Windows Desktop, iPhone, Android Phone, and iPad Tablet) were used.
+
 	1. fulldata.p:
 		- 5 fold CV on the entire data with parameters used for 'sessions_e20_25n' model. Run using xgb.cv, with early_stopping_rounds = 10, and nround = 35.  
 		- param['eta'] = 0.20, param['max_depth'] = 6, param['subsample'] = .5, param['col_sample_bytree'] = .6
