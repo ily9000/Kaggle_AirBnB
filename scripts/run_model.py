@@ -70,7 +70,7 @@ def main():
     param['eta'] = 0.16
     param['max_depth'] = 6
     param['subsample'] = .75
-    param['col_sample_bytree'] = .3
+    param['colsample_bytree'] = .3
     nrounds = 90
 
     bst = train_xgb(xgbInput.train_X, xgbInput.train_Y, param, nrounds)
