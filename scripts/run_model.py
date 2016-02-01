@@ -4,7 +4,7 @@ from sklearn import preprocessing
 import xgboost as xgb
 import kaggle_xgb
 import pickle
-import fetch_data
+import dataEngr
 
 def train_xgb(train_X, train_Y, p, nrounds):
 	"""Run xgb.train on the test data 
@@ -58,10 +58,11 @@ def get_submission(bst, test_X, test_users, le) :
 
 def main():
 
-    xgbInput = fetch_data.clfInput()
-    xgbInput.sessions_ftrEng()
+    xgbInput = dataEngr.clfInput()
+    xgbInput.get_sessionsFtr()
     xgbInput.users_ftrEng()
     xgbInput.one_hot()
+    #xgbInput.binarize_targets()
     xgbInput.split_data()
     
     #parameters to use to train the model
@@ -69,16 +70,16 @@ def main():
     param['eta'] = 0.20
     param['max_depth'] = 6
     param['subsample'] = .5
-    param['col_sample_bytree'] = .6
-    nrounds = 26
+    param['col_sample_bytree'] = .8
+    nrounds = 30
 
     bst = train_xgb(xgbInput.train_X, xgbInput.train_Y, param, nrounds)
-    with open('../xgbmodels/actions_e20_26n.p', 'wb') as f:
+    with open('../xgbmodels/actions2_e20_30n.p', 'wb') as f:
         pickle.dump(bst, f)
 
     #predict and get submissions
     submission = get_submission(bst, xgbInput.test_X, xgbInput.testDf.index, xgbInput.le)
-    submission.to_csv('../submissions/actions_e20_26n.csv', index=False)
+    submission.to_csv('../submissions/actions2_e20_30n.csv', index=False)
 
 if __name__ == '__main__':
     main()

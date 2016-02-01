@@ -32,54 +32,22 @@ class clfInput():
         #merge the training set and the test set on all columns except target
         self.allDf = pd.concat([self.trainDf, self.testDf], axis = 0, join = 'inner')
 
-    def sessions_ftrEng(self):
-        """Feature engineering for data in sessions.csv"""
-
-        sessionsDf = pd.read_csv(self.path + 'sessions.csv')
-        sessionsDf.dropna(subset=['user_id'], inplace = True)
-
-        #booking request action type
-        self.allDf['booking_request'] = -1
-        self.allDf.loc[self.allDf.index.isin(sessionsDf.user_id), 'booking_request'] = 0
-        users = self.allDf.index.isin(sessionsDf[sessionsDf.action_type == 'booking_request'].user_id)
-        self.allDf.loc[users, 'booking_request'] = 1
-
-        #action_detail 
-        self.allDf['message_post'] = -1
-        self.allDf.loc[self.allDf.index.isin(sessionsDf.user_id), 'message_post'] = 0
-        users = self.allDf.index.isin(sessionsDf[sessionsDf.action_detail == 'message_post'].user_id)
-        self.allDf.loc[users, 'message_post'] = 1
-
-        self.allDf['action_counts'] = -1
-        s = sessionsDf.groupby('user_id')['device_type'].count()
-        self.allDf.loc[s.index, 'action_counts'] = s
-
-        s = sessionsDf.groupby('user_id')['secs_elapsed'].sum()
-        self.allDf.loc[s.index, 'secs_elapsed'] = s
-        #self.allDf = self.allDf.fillna(-1)
-
-        #sessions devices: top 5 excluding '-unknown-'
-        devices = ['Mac Desktop', 'Windows Desktop', 'iPhone', 'Android Phone', 'iPad Tablet']
-        for dev in devices:
-            self.allDf[dev] = -1
-            self.allDf.loc[self.allDf.index.isin(sessionsDf.user_id), dev] = 0
-            users = sessionsDf.groupby('device_type')['user_id'].unique()[dev]
-            self.allDf.loc[users, dev] = 1
-
-        #actionsDf = pd.read_pickle('../data/actions.p')
-        #self.allDf = pd.concat([self.allDf, actionsDf], axis = 1, join = 'outer')
-
     def split_data(self):
         """Split the combined dataframe into training and test sets.
-        Create the training and test arrays for the classifer."""
+        Will convert to numerical labels if not already converted.
+        Create the training and test arrays for the classifier."""
 
-        self.trainDf = pd.concat([self.allDf.loc[self.trainDf.index], self.trainDf['country_destination']], axis = 1)
-        self.testDf = self.allDf.loc[self.testDf.index]
-        self.train_X = self.trainDf.iloc[:,:-1].values
-        self.test_X = self.testDf.values
+        #self.trainDf = pd.concat([self.allDf.loc[self.trainDf.index], self.trainDf['country_destination']], axis = 1)
+        #self.testDf = self.allDf.loc[self.testDf.index]
+        self.train_X = self.allDf.loc[self.trainDf.index,:].values
+        self.test_X = self.allDf.loc[self.testDf.index, :].values
         if not hasattr(self, 'train_Y'):
             self.encode_targets()
 
+    def get_sessionsFtr(self):
+        actionsDf = pd.read_pickle('../data/actions2.p')
+        self.allDf = pd.concat([actionsDf, self.allDf], axis = 1, join = 'outer')
+    
     def users_ftrEng(self):
         """Transform date and age columns in users data
         Split dates into year month day, and for timestamps split similarly 
@@ -109,8 +77,7 @@ class clfInput():
         self.allDf.drop('timestamp_first_active', axis=1, inplace = True)
 
         #age
-        self.allDf.loc[self.allDf.query('1000 > age > 100').index, 'age'] = 105
-        self.allDf.loc[self.allDf.query('age > 1000').index, 'age'] = 110
+        self.allDf.loc[self.allDf.query('age > 1000').index, 'age'] = 200
         self.allDf.loc[self.allDf['age']<16, 'age'] = -1
 
     def _rmbrowsers():
@@ -124,13 +91,18 @@ class clfInput():
         self.train_Y = (self.targets == 'NDF').astype(int)
     
     def one_hot(self):
-        """one hot encoding of features"""
+        """One hot encode the features and remove features exclusive to test or training set"""
 
-        print 'number of columns before one hot encoding', self.allDf.shape[1]
+        print 'number of columns before one hot encoding', self.allDf.shape[1]       
         ohe_feats = ['gender', 'signup_method', 'signup_flow', 'language', 
                     'affiliate_channel', 'affiliate_provider', 'first_affiliate_tracked', 
                     'signup_app', 'first_device_type', 'first_browser']
         self.allDf = pd.get_dummies(self.allDf, columns = ohe_feats)
+        #delete exclusive features
+        for col in ohe_feats:
+            rm_val = set(self.trainDf[col].unique()) ^ set(self.testDf[col].unique())
+            for ftr in rm_val:
+                del(self.allDf[col + '_' + str(ftr)])            
         print 'number of columns after one hot encoding', self.allDf.shape[1]
 
     def encode_targets(self):
