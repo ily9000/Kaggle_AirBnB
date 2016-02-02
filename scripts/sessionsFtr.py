@@ -13,11 +13,11 @@ sessionsDf['action'] = sessionsDf['action'].fillna('none')
 #merge these actions with action_detail
 #actions that correspond to message_post
 msgActs = sessionsDf.loc[sessionsDf.action_detail == 'message_post', 'action'].unique().tolist()
+#pending action & pending action detail: 'pending_pending' has a 1 to 1 relationship with booking request
 actions = ['index', 'show', 'create', 'reviews', 'delete', 'recommendations', 'update', 'pending'] 
 actions += msgActs
 mergedActs = sessionsDf.action + '_' + sessionsDf.action_detail
 #ignoring patch
-#ignoring 'pending'
 for a in actions:
     sessionsDf.loc[sessionsDf.action == a, 'action'] = mergedActs[sessionsDf.action == a]
 
@@ -34,9 +34,8 @@ action_cnts = action_cnts.unstack(level = -1)
 action_cnts.fillna(0, inplace=True)
 
 #sum booking requests and message posts
-a_details = ['message_post', 'booking_request']
+a_details = ['message_post', 'pending_pending|at_checkpoint']
 for a in a_details:
-    action_cnts[a + 'total'] = action_cnts.loc[:, action_cnts.columns.str.contains(a)].sum(axis = 1)
     action_cnts[a + 'total'] = action_cnts.loc[:, action_cnts.columns.str.contains(a)].sum(axis = 1)
 
 #merge action counts with other sessions features, 

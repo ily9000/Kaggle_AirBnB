@@ -47,6 +47,7 @@ def main():
     cv_train = pd.DataFrame()
     cv_valid = pd.DataFrame()
     nrounds = 40
+    
     for train_indx, valid_indx in cv_bymonth(xgbInput):
         dtrain = xgb.DMatrix(xgbInput.train_X[train_indx], label = xgbInput.train_Y[train_indx],
                     missing = -1)

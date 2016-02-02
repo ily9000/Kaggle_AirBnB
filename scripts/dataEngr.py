@@ -32,6 +32,16 @@ class clfInput():
         #merge the training set and the test set on all columns except target
         self.allDf = pd.concat([self.trainDf, self.testDf], axis = 0, join = 'inner')
 
+    def split_forcv(self):
+        """Keep only the training samples, and create training array and dataframe
+        for cross validation"""
+        
+        self.trainDf = pd.concat([self.allDf.loc[self.trainDf.index], self.trainDf['country_destination']], axis = 1)
+        self.train_X = self.allDf.loc[self.trainDf.index,:].values
+        del self.allDf
+        if not hasattr(self, 'train_Y'):
+            self.encode_targets()
+        
     def split_data(self):
         """Split the combined dataframe into training and test sets.
         Will convert to numerical labels if not already converted.
@@ -79,10 +89,6 @@ class clfInput():
         #age
         self.allDf.loc[self.allDf.query('age > 1000').index, 'age'] = 200
         self.allDf.loc[self.allDf['age']<16, 'age'] = -1
-
-    def _rmbrowsers():
-        """remove browsers only found in either test or training set"""
-        pass
 
     def binarize_targets(self, true_cntr = 'NDF'):
         """split targets into NDF and non NDF"""

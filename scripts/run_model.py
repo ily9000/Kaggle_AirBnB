@@ -69,9 +69,9 @@ def main():
     param = {}
     param['eta'] = 0.16
     param['max_depth'] = 6
-    param['subsample'] = .75
+    param['subsample'] = .8
     param['colsample_bytree'] = .3
-    nrounds = 90
+    nrounds = 80
 
     bst = train_xgb(xgbInput.train_X, xgbInput.train_Y, param, nrounds)
     with open('../xgbmodels/actions2_e16_90n.p', 'wb') as f:
@@ -79,7 +79,7 @@ def main():
 
     #predict and get submissions
     submission = get_submission(bst, xgbInput.test_X, xgbInput.testDf.index, xgbInput.le)
-    submission.to_csv('../submissions/actions2_e16_90n.csv', index=False)
+    submission.to_csv('../submissions/actions2_e16_80n.csv', index=False)
 
 if __name__ == '__main__':
     main()
