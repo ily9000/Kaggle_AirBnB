@@ -16,7 +16,7 @@ def cv_bymonth(xgbInput):
     Only cases in 2014 have sessions data and the last test case is on June 30.
     """
     
-    for i in range(1,7):
+    for i in range(5,7):
         condition = 'dac_year == 2014 & dac_month == @i & action_counts != -1'
         valid_mask = xgbInput.trainDf.index.isin(xgbInput.trainDf.query(condition).index)
         valid_indx = np.where(valid_mask)
@@ -29,15 +29,15 @@ xgbInput.get_sessionsFtr()
 xgbInput.users_ftrEng()
 xgbInput.one_hot()
 #xgbInput.binarize_targets()
-xgbInput.split_forcv()
+xgbInput.split_data(update_trainDf=True)
 
 param = {'num_class': 12, 'silent': 1, 'objective': 'multi:softprob'}
 
 param_grid = {}
 param_grid['eta'] = [.20]
 param_grid['max_depth'] = [6]
-param_grid['subsample'] = [.5, .7]
-param_grid['colsample_bytree'] = [.6, .8, 1]
+param_grid['subsample'] = [.5]
+param_grid['colsample_bytree'] = [1]
 results = {}
 err_out = {}
 nrounds = 50
@@ -47,11 +47,11 @@ cv_train = pd.DataFrame()
 cv_error = pd.DataFrame()
 
 #set up dataframe to store mean/stdev. after cross validation
-cv_tofile = pd.DataFrame()
+cv_tofile = pd.read_pickle('cv_results/actions_e20/errors_search2.p')
 
 #set up dataframe to store the parameters used for cross validation
 col_names = list(param_grid.iterkeys())
-df_params = pd.DataFrame(columns = col_names)
+df_params = pd.read_pickle('cv_results/actions_e20/params_search2.p')    
 
 for cnt, p in enumerate(list(ParameterGrid(param_grid))):
     print cnt
@@ -79,4 +79,5 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid))):
     
 #output the parameters that were used
     df_params = df_params.append(p, ignore_index= True)
-    pd.to_pickle(df_params, 'cv_results/actions_e20/params_search2.p')        
+    pd.to_pickle(df_params, 'cv_results/actions_e20/params_search2.p')
+    pd.to_pickle(pd.concat(cv_train, cv_error, axis = 1), 'cv_results/actions_e20/search2/res2.p')

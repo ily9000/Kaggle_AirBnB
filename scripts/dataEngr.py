@@ -32,31 +32,41 @@ class clfInput():
         #merge the training set and the test set on all columns except target
         self.allDf = pd.concat([self.trainDf, self.testDf], axis = 0, join = 'inner')
 
-    def split_forcv(self):
-        """Keep only the training samples, and create training array and dataframe
-        for cross validation"""
-        
-        self.trainDf = pd.concat([self.allDf.loc[self.trainDf.index], self.trainDf['country_destination']], axis = 1)
-        self.train_X = self.allDf.loc[self.trainDf.index,:].values
-        del self.allDf
+    def split_bySess(self):
+        """Subset the training set with just those who have actions"""
+
+        #there is no guarantee the order of allDf matches trainDf, so use index not integers
         if not hasattr(self, 'train_Y'):
             self.encode_targets()
+        users = list(set(self.sessUsrs) & set(self.trainDf.index))
+        self.sesstrain_X = self.trainDf.loc[users].values
+        #find indices of training set users which have sessions data
+        #subset target array
+        mask = self.trainDf.index.get_indexer(users)
+        self.sesstrain_Y = self.train_Y[mask]
         
-    def split_data(self):
+    def split_data(self, update_trainDf = False):
         """Split the combined dataframe into training and test sets.
         Will convert to numerical labels if not already converted.
-        Create the training and test arrays for the classifier."""
-
-        #self.trainDf = pd.concat([self.allDf.loc[self.trainDf.index], self.trainDf['country_destination']], axis = 1)
+        Create the training and test arrays for the classifier.
+        If cross validation will be done, set update_trainDf to True, and the
+        training set dataframe will be updated with the engineered features."""
+       
+        #there is no guarantee in the order of allDf, so use index not integers
+        if not hasattr(self, 'train_Y'):
+            self.encode_targets()
+        if update_trainDf:
+            self.trainDf = pd.concat([self.allDf.loc[self.trainDf.index], self.trainDf['country_destination']], axis = 1)
         #self.testDf = self.allDf.loc[self.testDf.index]
         self.train_X = self.allDf.loc[self.trainDf.index,:].values
         self.test_X = self.allDf.loc[self.testDf.index, :].values
-        if not hasattr(self, 'train_Y'):
-            self.encode_targets()
 
     def get_sessionsFtr(self):
+        """Load and merge the sessions features with user data"""
+        
         actionsDf = pd.read_pickle('../data/actions2.p')
         self.allDf = pd.concat([actionsDf, self.allDf], axis = 1, join = 'outer')
+        self.sessUsrs = actionsDf.index
     
     def users_ftrEng(self):
         """Transform date and age columns in users data
