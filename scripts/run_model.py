@@ -26,7 +26,7 @@ def train_xgb(train_X, train_Y, p, nrounds):
 	param = {'num_class': 12, 'objective': 'multi:softprob', 'seed': 0}
 	param.update(p)
 
-	bst = xgb.train(param, xg_train)
+	bst = xgb.train(params = param,  dtrain = xg_train, num_boost_round=nrounds)
 	return bst
 
 def get_submission(bst, test_X, test_users, le) :
@@ -71,7 +71,7 @@ def main():
     param['max_depth'] = 6
     param['subsample'] = .5
     param['colsample_bytree'] = 1
-    nrounds = 35
+    nrounds = 40
 
     bst = train_xgb(xgbInput.train_X, xgbInput.train_Y, param, nrounds)
     with open('../xgbmodels/actions2_e20_40n.p', 'wb') as f:
