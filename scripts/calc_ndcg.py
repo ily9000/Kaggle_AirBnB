@@ -36,6 +36,6 @@ def evalerror(cls_prob, dtrain):
     labels = dtrain.get_label()
     k = 5
     top_k = cls_prob.argsort(axis = 1)[:,:k:-1]
-    #convert true values  and compared with predictions to check for equality
+    #convert true values and compared with predictions to check for equality
     labels = labels[:, None]
     return 'error', 1-ndcg(top_k, labels)/len(labels)

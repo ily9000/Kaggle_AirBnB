@@ -67,19 +67,19 @@ def main():
     
     #parameters to use to train the model
     param = {}
-    param['eta'] = 0.20
+    param['eta'] = 0.16
     param['max_depth'] = 6
-    param['subsample'] = .5
-    param['colsample_bytree'] = 1
-    nrounds = 40
+    param['subsample'] = .7
+    param['colsample_bytree'] = .6
+    nrounds = 53
 
     bst = train_xgb(xgbInput.train_X, xgbInput.train_Y, param, nrounds)
-    with open('../xgbmodels/actions2_e20_40n.p', 'wb') as f:
+    with open('../xgbmodels/actions2_e16_53n.p', 'wb') as f:
         pickle.dump(bst, f)
 
     #predict and get submissions
     submission = get_submission(bst, xgbInput.test_X, xgbInput.testDf.index, xgbInput.le)
-    submission.to_csv('../submissions/actions2_e20_40n.csv', index=False)
+    submission.to_csv('../submissions/actions2_e16_53n.csv', index=False)
 
 if __name__ == '__main__':
     main()
