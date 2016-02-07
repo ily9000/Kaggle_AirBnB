@@ -34,11 +34,11 @@ xgbInput.split_data(update_trainDf=True)
 param = {'num_class': 12, 'silent': 1, 'objective': 'multi:softprob'}
 
 param_grid = {}
-param_grid['eta'] = [.16]
-param_grid['max_depth'] = [7]
+param_grid['eta'] = [.13]
+param_grid['max_depth'] = [6]
 param_grid['subsample'] = [.9]
-param_grid['colsample_bytree'] = [.6]
-nrounds = 100
+param_grid['colsample_bytree'] = [.4, .5, .6]
+nrounds = 80
 
 #set up dataframe to store mean/stdev. after cross validation
 cv_tofile = pd.read_pickle('cv_results/actions_e20/errors_search3.p')
@@ -48,7 +48,7 @@ col_names = list(param_grid.iterkeys())
 #df_params = pd.DataFrame(columns = col_names)   
 df_params = pd.read_pickle('cv_results/actions_e20/params_search3.p')
 
-for cnt, p in enumerate(list(ParameterGrid(param_grid))):
+for cnt, p in enumerate(list(ParameterGrid(param_grid)), 4):
     print cnt
     param.update(p)
 #store errors from each month by doing cv
@@ -68,10 +68,10 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid))):
 
     pd.to_pickle(cv_valid, 'cv_results/actions_e20/search3/res' + str(cnt) +'.p')
 #take the mean and standard deviation of training and validation error and pickle those results
-    err_out['train-error-mean' + str(cnt+1)] = cv_train.astype('float').mean(axis = 1)
-    err_out['train-error-std' + str(cnt+1)] = cv_train.astype('float').std(axis = 1)
-    err_out['valid-error-mean' + str(cnt+1)] = cv_valid.astype('float').mean(axis = 1)
-    err_out['valid-error-std' + str(cnt+1)] = cv_valid.astype('float').std(axis = 1)
+    err_out['train-error-mean' + str(cnt)] = cv_train.astype('float').mean(axis = 1)
+    err_out['train-error-std' + str(cnt)] = cv_train.astype('float').std(axis = 1)
+    err_out['valid-error-mean' + str(cnt)] = cv_valid.astype('float').mean(axis = 1)
+    err_out['valid-error-std' + str(cnt)] = cv_valid.astype('float').std(axis = 1)
     cv_tofile = pd.concat([cv_tofile, pd.DataFrame(err_out)], axis = 1)
     pd.to_pickle(cv_tofile, 'cv_results/actions_e20/errors_search3.p')
     

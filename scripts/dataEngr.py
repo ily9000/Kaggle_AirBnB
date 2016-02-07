@@ -66,6 +66,7 @@ class clfInput():
         
         actionsDf = pd.read_pickle('../data/actions3.p')
         self.allDf = pd.concat([actionsDf, self.allDf], axis = 1, join = 'outer')
+        self.allDf.drop(['p4total'], axis = 1, inplace = True)
         self.sessUsrs = actionsDf.index
     
     def users_ftrEng(self):
