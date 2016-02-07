@@ -5,15 +5,18 @@ import numpy as np
 train_data = pd.read_csv('../data/train_users_2.csv', index_col = 'id')
 test_data = pd.read_csv('../data/test_users.csv', index_col = 'id')
 sessionsDf = pd.read_csv('../data/sessions.csv')
+#drop missing users, substitute 'none' for NaN actions
 sessionsDf.dropna(subset=['user_id'], inplace = True)
-sessionsDf['action_type'] = sessionsDf['action_type'].fillna('none')
-sessionsDf['action_detail'] = sessionsDf['action_detail'].fillna('none')
-sessionsDf['action'] = sessionsDf['action'].fillna('none')
+sessionsDf.fillna({'action_type': 'none', 'action': 'none','action_detail': 'none'}, inplace = True)
+
+#change these actions to match with training set
+sessionsDf.replace({'action': {'this_hosting_reviews_3000': 'this_hosting_reviews'}}, inplace = True)
 
 #merge these actions with action_detail
 #actions that correspond to message_post
 msgActs = sessionsDf.loc[sessionsDf.action_detail == 'message_post', 'action'].unique().tolist()
 #pending action & pending action detail: 'pending_pending' has a 1 to 1 relationship with booking request
+#need to include click and patch
 actions = ['index', 'show', 'create', 'reviews', 'delete', 'recommendations', 'update', 'pending'] 
 actions += msgActs
 mergedActs = sessionsDf.action + '_' + sessionsDf.action_detail
@@ -57,12 +60,12 @@ dev_counts = sessionsDf.groupby(['user_id']).apply(lambda x: x['device_type'].va
 n = len(dev_counts.index.get_level_values(-1).unique())
 allDf = pd.concat([allDf, dev_counts.unstack()], axis = 1)
 allDf = allDf.fillna(0)
-allDf.columns.values[-n:] = allDf.columns.values[-n:] + '_counts'
+allDf.columns = allDf.columns[:-n].tolist() + list(allDf.columns[-n:] + '_counts')
 
 dev_prop = sessionsDf.groupby(['user_id']).apply(lambda x: x['device_type'].value_counts(normalize = True))
 allDf = pd.concat([allDf, dev_counts.unstack()], axis = 1)
 allDf = allDf.fillna(0)
-allDf.columns.values[-n:] = allDf.columns.values[-n:] + '_prop'
+allDf.columns = allDf.columns[:-n].tolist() + list(allDf.columns[-n:] + '_prop')
 
-pd.to_pickle(allDf, '../data/actions2.p')
+pd.to_pickle(allDf, '../data/actions3.p')
 #dev_time = sessions.groupby(['user_id', 'action']).apply(lambda x: x['device_type'].value_counts())

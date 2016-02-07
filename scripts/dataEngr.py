@@ -64,7 +64,7 @@ class clfInput():
     def get_sessionsFtr(self):
         """Load and merge the sessions features with user data"""
         
-        actionsDf = pd.read_pickle('../data/actions2.p')
+        actionsDf = pd.read_pickle('../data/actions3.p')
         self.allDf = pd.concat([actionsDf, self.allDf], axis = 1, join = 'outer')
         self.sessUsrs = actionsDf.index
     
