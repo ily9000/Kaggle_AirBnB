@@ -69,9 +69,9 @@ def main():
     param = {}
     param['eta'] = 0.13
     param['max_depth'] = 6
-    param['subsample'] = .87
+    param['subsample'] = .9
     param['colsample_bytree'] = .45
-    nrounds = 96
+    nrounds = 100
 
     bst = train_xgb(xgbInput.train_X, xgbInput.train_Y, param, nrounds)
     with open('../xgbmodels/actions2_e13_96n.p', 'wb') as f:
