@@ -37,8 +37,8 @@ param_grid = {}
 param_grid['eta'] = [.13]
 param_grid['max_depth'] = [6]
 param_grid['subsample'] = [.9]
-param_grid['colsample_bytree'] = [.4, .5, .6]
-nrounds = 80
+param_grid['colsample_bytree'] = [.45, .6]
+nrounds = 100
 
 #set up dataframe to store mean/stdev. after cross validation
 cv_tofile = pd.read_pickle('cv_results/actions_e20/errors_search3.p')
