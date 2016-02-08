@@ -48,7 +48,7 @@ col_names = list(param_grid.iterkeys())
 #df_params = pd.DataFrame(columns = col_names)   
 df_params = pd.read_pickle('cv_results/actions_e20/params_search3.p')
 
-for cnt, p in enumerate(list(ParameterGrid(param_grid)), 4):
+for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
     print cnt
     param.update(p)
 #store errors from each month by doing cv
