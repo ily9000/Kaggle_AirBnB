@@ -3,6 +3,7 @@
 
 import pandas as pd
 import numpy as np
+from __future__ import division
 
 def ndcg(preds, labels):
     """Calculate sum of normalzied discounted cumulative gain for the predictions
@@ -34,8 +35,41 @@ def evalerror(cls_prob, dtrain):
     """
     #determine the top k predictions
     labels = dtrain.get_label()
-    k = 5
-    top_k = cls_prob.argsort(axis = 1)[:,:k:-1]
+    top_k = cls_prob.argsort(axis = 1)[:,::-1][:,:5]
+#    top_k = cls_prob.argsort(axis = 1)[:,:k:-1]
     #convert true values and compared with predictions to check for equality
     labels = labels[:, None]
     return 'error', 1-ndcg(top_k, labels)/len(labels)
+    
+def eval_ndfUs(cls_prob, dtrain):
+    """Calculate NDCG for US and NDF, NDF is encoded as 7 and US is encoded as 10."""
+    
+    labels = dtrain.get_label()
+    pred = cls_prob.argsort(axis = 1)[:,::-1][:,:5]
+#only retain the labels for users who chose US or NDF
+    users_idx = np.logical_or(labels == 7, labels == 10)
+    labels = labels[users_idx]
+    labels = labels[:, None]
+    return 'error', 1-ndcg(top_k, labels)/len(users_idx)
+
+def eval_foreign(cls_prop, dtrain):
+    """Calculate ndcg error for the users who chose destinations outside the US."""
+       
+    labels = dtrain.get_label()
+    pred = cls_prob.argsort(axis = 1)[:,::-1][:,:5]
+    users_idx = np.where((labels != 7) & (labels != 10))[0]
+#only retain the labels for users who chose foreign destinations
+    labels = labels[users_idx]
+    labels = labels[:, None]
+    return 'error', 1-ndcg(top_k, labels)/len(users_idx)
+
+# def us_misclf(cls_prob, dtrain):
+#     """Find percent of misclassification at the first position for users who chose US.
+#     US is encoded as 10."""
+    
+#     labels = dtrain.get_label()
+#     #sort the probabilities and retain the index with the highest probability
+#     pred = cls_prob.argsort(axis = 1)[:,::-1][:,:5]
+#     #determine which users have labels as US
+#     users_idx = np.where(labels == 10)[0]
+#     return 'error', 1 - np.sum(np.equal(pred[users_idx], 10))/len(users_idx)
