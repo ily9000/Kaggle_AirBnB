@@ -53,7 +53,7 @@ param_grid['eta'] = [.10, .13]
 param_grid['max_depth'] = [6]
 param_grid['subsample'] = [.9]
 param_grid['colsample_bytree'] = [.45]
-nrounds = 170
+nrounds = 150
 
 #set up dataframe to store mean/stdev. after cross validation
 cv_tofile = pd.read_pickle('cv_results/actions_e20/errors_search3.p')
@@ -63,7 +63,7 @@ col_names = list(param_grid.iterkeys())
 #df_params = pd.DataFrame(columns = col_names)   
 df_params = pd.read_pickle('cv_results/actions_e20/params_search3.p')
 
-for cnt, p in enumerate(list(ParameterGrid(param_grid)), 14):
+for cnt, p in enumerate(list(ParameterGrid(param_grid)), 15):
     print cnt
     param.update(p)
 #store errors from each month by doing cv
@@ -95,5 +95,5 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 14):
     
 #output the parameters that were used
     df_params = df_params.append(p, ignore_index= True)
-    df_params.iloc[-1,-1] = 'nodrop, sklearn_kfold, all'
+    df_params.iloc[-1,-1] = 'nodrop, sklearn_kfold, all, 20folds'
     pd.to_pickle(df_params, 'cv_results/actions_e20/params_search3.p')
