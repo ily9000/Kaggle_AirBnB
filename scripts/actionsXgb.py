@@ -55,7 +55,7 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
     cv_valid = pd.DataFrame()
     err_out = {}
     results = {}
-    dtrain = xgb.DMatrix(xgbInput.train_X[train_indx], label = xgbInput.train_Y[train_indx],
+    dtrain = xgb.DMatrix(xgbInput.train_X, label = xgbInput.train_Y,
                 missing = -1)
     #evallist = [(dtrain, 'train'), (dvalid, 'eval')]
     bst= xgb.cv(param, dtrain, nrounds, nfold=10, feval= calc_ndcg.eval_all, evals_result= results, early_stopping_rounds= 10)
