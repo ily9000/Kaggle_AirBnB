@@ -23,7 +23,7 @@ def ndcg(preds, labels):
     total_ndcg = np.sum(1./np.log2(relv_pos+2))
     return total_ndcg
     
-def evalerror(cls_prob, dtrain):
+def eval_all(cls_prob, dtrain):
     """find top k predictions from probability matrix and call ndcg to find accuracy of predictions
     
     Args:
@@ -39,7 +39,7 @@ def evalerror(cls_prob, dtrain):
 #    top_k = cls_prob.argsort(axis = 1)[:,:k:-1]
     #convert true values and compared with predictions to check for equality
     labels = labels[:, None]
-    return 'error', 1-ndcg(top_k, labels)/len(labels)
+    return 1-ndcg(top_k, labels)/len(labels)
     
 def eval_ndfUs(cls_prob, dtrain):
     """Calculate NDCG for users who chose US or NDF, NDF is encoded as 7 and US is encoded as 10."""
@@ -51,7 +51,7 @@ def eval_ndfUs(cls_prob, dtrain):
     labels = labels[users_idx]
     pred = pred[users_idx,:]
     labels = labels[:, None]
-    return 'US/NDF error', 1-ndcg(pred, labels)/len(labels)
+    return 1-ndcg(pred, labels)/len(labels)
 
 def eval_foreign(cls_prop, dtrain):
     """Calculate ndcg error for the users who chose destinations outside the US."""
@@ -63,8 +63,14 @@ def eval_foreign(cls_prop, dtrain):
     labels = labels[users_idx]
     pred = pred[users_idx,:]
     labels = labels[:, None]
-    return 'Foreign error', 1-ndcg(pred, labels)/len(labels)
-
+    return 1-ndcg(pred, labels)/len(labels)
+    
+def eval_error3(cls_prob, dtrain):
+    f_err = eval_foreign(cls_prob, dtrain)
+    ndfUs_err = eval_ndfUs(cls_prob, dtrain)
+    all_err = eval_all(cls_prob, dtrain)
+    return 'Error3', {'ndfUs': ndfUs_err, 'foreign': f_err, 'all': all_err}  
+    
 # def us_misclf(cls_prob, dtrain):
 #     """Find percent of misclassification at the first position for users who chose US.
 #     US is encoded as 10."""
