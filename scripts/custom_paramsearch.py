@@ -38,7 +38,7 @@ param_grid['eta'] = [.13]
 param_grid['max_depth'] = [6]
 param_grid['subsample'] = [.9]
 param_grid['colsample_bytree'] = [.45]
-nrounds = 100
+nrounds = 120
 
 #set up dataframe to store mean/stdev. after cross validation
 cv_tofile = pd.read_pickle('cv_results/actions_e20/errors_search3.p')
@@ -52,8 +52,9 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
     print cnt
     param.update(p)
 #store errors from each month by doing cv
-#    cv_train = pd.DataFrame()
     cv_valid = pd.DataFrame()
+    #cv_ndf = pd.DataFrame()
+    #cv_all = pd.DataFrame()
     err_out = {}
     for train_indx, valid_indx in cv_bymonth(xgbInput):
         results = {}
@@ -63,22 +64,21 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
                     missing = -1)
         #evallist = [(dtrain, 'train'), (dvalid, 'eval')]
         evallist = [(dvalid, 'eval')]
-        bst = xgb.train(param, dtrain, nrounds, evallist, feval = calc_ndcg.eval_ndfUs, evals_result = results)
-        cv_valid = pd.concat([cv_valid, pd.Series(results['eval']['usNdf-error-mean'], name = str(cv_valid.shape[1]))], axis = 1)
+        bst = xgb.train(param, dtrain, nrounds, evallist, feval = calc_ndcg.eval_all, evals_result = results)
+        cv_valid = pd.concat([cv_valid, pd.Series(results['eval']['error'], name = str(cv_valid.shape[1]))], axis = 1)
+        #cv_ndf = pd.concat([cv_valid, pd.Series(results['eval']['error3']['ndf'], name = str(cv_valid.shape[1]))], axis = 1)
+        #cv_all = pd.concat([cv_valid, pd.Series(results['eval']['error3']['all'], name = str(cv_valid.shape[1]))], axis = 1)
 
     pd.to_pickle(cv_valid, 'cv_results/actions_e20/search3/res' + str(cnt) +'.p')
     
-#take the mean and standard deviation of training and validation errors and pickle those results    
-    err_out_names = [['usNdf-error-mean', 'usNdf-error-std']] 
-#    err_out_names = [['foreign-error-mean', 'foreign-error-std']]
-#    err_out_names = [['valid-error-mean', 'valid-error-std']]    
-    for x in err_out_names:                                                                                                       
-        err_out[x[0] + str(cnt)] = cv_valid.astype('float').mean(axis = 1)
-        err_out[x[1] + str(cnt)] = cv_valid.astype('float').std(axis = 1)
+#take the mean and standard deviation of training and validation errors and pickle those results                                 
+    err_out['valid_mean' + str(cnt)] = cv_valid.astype('float').mean(axis = 1)
+    err_out['valid_std' + str(cnt)] = cv_valid.astype('float').std(axis = 1)
         
     cv_tofile = pd.concat([cv_tofile, pd.DataFrame(err_out)], axis = 1)
     pd.to_pickle(cv_tofile, 'cv_results/actions_e20/errors_search3.p')
     
 #output the parameters that were used
     df_params = df_params.append(p, ignore_index= True)
+    df_params.iloc[-1,-1] = 'actions3_nodrop, ndcg_all'
     pd.to_pickle(df_params, 'cv_results/actions_e20/params_search3.p')

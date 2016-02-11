@@ -32,16 +32,22 @@ class clfInput():
         #merge the training set and the test set on all columns except target
         self.allDf = pd.concat([self.trainDf, self.testDf], axis = 0, join = 'inner')
 
-    def split_bySess(self):
-        """Subset the training set with just those who have actions"""
+    def split_bySess(self, only_actions = True):
+        """Subset the training set with just those who have actions.
+        Parameters:
+            only_actions (bool): Return only the columns with the action features"""
 
-        #there is no guarantee the order of allDf matches trainDf, so use index not integers
+        #there is no guarantee the order of allDf matches trainDf, so use index not integers        
         if not hasattr(self, 'train_Y'):
             self.encode_targets()
         users = list(set(self.sessUsrs) & set(self.trainDf.index))
-        self.sesstrain_X = self.trainDf.loc[users].values
-        #find indices of training set users which have sessions data
-        #subset target array
+        if only_actions:
+            actionsDf = pd.read_pickle('../data/actions3.p')
+            self.sesstrain_X = self.allDf.loc[users, :]
+            self.sesstrain_X = self.sesstrain_X.loc[:, self.sesstrain_X.columns.isin(actionsDf.columns)].values
+        else:
+            self.sesstrain_X = self.allDf.loc[users, :].values
+#find indices of training set users which have sessions data, and subset target array
         mask = self.trainDf.index.get_indexer(users)
         self.sesstrain_Y = self.train_Y[mask]
         
