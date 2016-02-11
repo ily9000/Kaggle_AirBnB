@@ -67,12 +67,11 @@ class clfInput():
         self.train_X = self.allDf.loc[self.trainDf.index,:].values
         self.test_X = self.allDf.loc[self.testDf.index, :].values
 
-    def get_sessionsFtr(self):
+    def get_sessionsFtr(self, f = 'actions3.p'):
         """Load and merge the sessions features with user data"""
         
-        actionsDf = pd.read_pickle('../data/actions3.p')
+        actionsDf = pd.read_pickle('../data/' + f)
         self.allDf = pd.concat([actionsDf, self.allDf], axis = 1, join = 'outer')
-#        self.allDf.drop(['p4total'], axis = 1, inplace = True)
         self.sessUsrs = actionsDf.index
     
     def users_ftrEng(self):

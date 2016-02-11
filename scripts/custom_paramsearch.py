@@ -9,6 +9,21 @@ import kaggle_xgb
 import calc_ndcg
 import dataEngr
 import pickle
+from sklearn.cross_validation import KFold
+
+def sklearn_cv(xgbInput):
+    """Do KFold on users with sessions data"""
+    
+    condition = 'action_counts != -1'
+    valid_mask = xgbInput.trainDf.index.isin(xgbInput.trainDf.query(condition).index)
+    session_indx = np.where(valid_mask)[0]
+    all_indx = np.arange(len(xgbInput.train_X))
+    
+    for kf in KFold(n = len(session_indx), n_folds=6, shuffle = True):
+        valid_indx = session_indx[kf[1]]
+        train_indx = np.delete(all_indx, valid_indx)
+        yield train_indx, valid_indx
+
 
 def cv_bymonth(xgbInput):
     """Select folds for cross validation as all cases that occurred in a given with month 
@@ -48,7 +63,7 @@ col_names = list(param_grid.iterkeys())
 #df_params = pd.DataFrame(columns = col_names)   
 df_params = pd.read_pickle('cv_results/actions_e20/params_search3.p')
 
-for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
+for cnt, p in enumerate(list(ParameterGrid(param_grid)), 7):
     print cnt
     param.update(p)
 #store errors from each month by doing cv
@@ -56,7 +71,7 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
     #cv_ndf = pd.DataFrame()
     #cv_all = pd.DataFrame()
     err_out = {}
-    for train_indx, valid_indx in cv_bymonth(xgbInput):
+    for train_indx, valid_indx in sklearn_cv(xgbInput):
         results = {}
         dtrain = xgb.DMatrix(xgbInput.train_X[train_indx], label = xgbInput.train_Y[train_indx],
                     missing = -1)
@@ -64,7 +79,7 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
                     missing = -1)
         #evallist = [(dtrain, 'train'), (dvalid, 'eval')]
         evallist = [(dvalid, 'eval')]
-        bst = xgb.train(param, dtrain, nrounds, evallist, feval = calc_ndcg.eval_all, evals_result = results)
+        bst = xgb.train(param, dtrain, nrounds, evallist, feval = calc_ndcg.eval_foreign, evals_result = results)
         cv_valid = pd.concat([cv_valid, pd.Series(results['eval']['error'], name = str(cv_valid.shape[1]))], axis = 1)
         #cv_ndf = pd.concat([cv_valid, pd.Series(results['eval']['error3']['ndf'], name = str(cv_valid.shape[1]))], axis = 1)
         #cv_all = pd.concat([cv_valid, pd.Series(results['eval']['error3']['all'], name = str(cv_valid.shape[1]))], axis = 1)
@@ -80,5 +95,5 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
     
 #output the parameters that were used
     df_params = df_params.append(p, ignore_index= True)
-    df_params.iloc[-1,-1] = 'actions3_nodrop, ndcg_all'
+    df_params.iloc[-1,-1] = 'actions3_nodrop, sklearn_kfold'
     pd.to_pickle(df_params, 'cv_results/actions_e20/params_search3.p')
