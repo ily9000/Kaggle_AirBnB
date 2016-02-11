@@ -1,9 +1,9 @@
 #customized evalerror function for xgboost to pass to feval when doing cross validation
 #example: xgb.cv(param, xg_train, num_boost_round = nround, nfold = 10, feval=evalerror)
 
+from __future__ import division
 import pandas as pd
 import numpy as np
-from __future__ import division
 
 def ndcg(preds, labels):
     """Calculate sum of normalzied discounted cumulative gain for the predictions
@@ -14,7 +14,7 @@ def ndcg(preds, labels):
         preds: n*5 array of predictor targets
         labels: n*1 array targets
     Returns:
-        sum of normalized discounted cumulative gain for all the predictions
+        sum of normalized discounted cumulative gain for the predictions of all users
     """
     
     #find positions where the prediction matches the label
@@ -42,7 +42,7 @@ def evalerror(cls_prob, dtrain):
     return 'error', 1-ndcg(top_k, labels)/len(labels)
     
 def eval_ndfUs(cls_prob, dtrain):
-    """Calculate NDCG for US and NDF, NDF is encoded as 7 and US is encoded as 10."""
+    """Calculate NDCG for users who chose US or NDF, NDF is encoded as 7 and US is encoded as 10."""
     
     labels = dtrain.get_label()
     pred = cls_prob.argsort(axis = 1)[:,::-1][:,:5]
@@ -50,18 +50,19 @@ def eval_ndfUs(cls_prob, dtrain):
     users_idx = np.logical_or(labels == 7, labels == 10)
     labels = labels[users_idx]
     labels = labels[:, None]
-    return 'error', 1-ndcg(top_k, labels)/len(users_idx)
+    return 'US/NDF error', 1-ndcg(top_k, labels)/len(labels)
 
 def eval_foreign(cls_prop, dtrain):
     """Calculate ndcg error for the users who chose destinations outside the US."""
        
     labels = dtrain.get_label()
     pred = cls_prob.argsort(axis = 1)[:,::-1][:,:5]
-    users_idx = np.where((labels != 7) & (labels != 10))[0]
+    users_idx = np.logical_or(labels != 7, labels != 10)
 #only retain the labels for users who chose foreign destinations
     labels = labels[users_idx]
+    pred = pred[users_idx,:]
     labels = labels[:, None]
-    return 'error', 1-ndcg(top_k, labels)/len(users_idx)
+    return 'Foreign error', 1-ndcg(top_k, labels)/len(labels)
 
 # def us_misclf(cls_prob, dtrain):
 #     """Find percent of misclassification at the first position for users who chose US.
