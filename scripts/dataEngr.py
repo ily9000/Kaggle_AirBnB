@@ -104,6 +104,8 @@ class clfInput():
 
         #age
         self.allDf.loc[self.allDf.query('age > 1000').index, 'age'] = 200
+        av = 2014 - self.testDf[(self.testDf.age>1000) & (self.testDf.age<2000)].age
+        self.allDf.loc[av.index, 'age'] = av.values
         self.allDf.loc[self.allDf['age']<16, 'age'] = -1
 
     def binarize_targets(self, true_cntr = 'NDF'):

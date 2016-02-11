@@ -19,7 +19,7 @@ def sklearn_cv(xgbInput):
     session_indx = np.where(valid_mask)[0]
     all_indx = np.arange(len(xgbInput.train_X))
     
-    for kf in KFold(n = len(session_indx), n_folds=6, shuffle = True):
+    for kf in KFold(n = len(session_indx), n_folds=20, shuffle = True):
         valid_indx = session_indx[kf[1]]
         train_indx = np.delete(all_indx, valid_indx)
         yield train_indx, valid_indx
@@ -49,11 +49,11 @@ xgbInput.split_data(update_trainDf=True)
 param = {'num_class': 12, 'silent': 1, 'objective': 'multi:softprob'}
 
 param_grid = {}
-param_grid['eta'] = [.10]
+param_grid['eta'] = [.10, .13]
 param_grid['max_depth'] = [6]
 param_grid['subsample'] = [.9]
 param_grid['colsample_bytree'] = [.45]
-nrounds = 150
+nrounds = 170
 
 #set up dataframe to store mean/stdev. after cross validation
 cv_tofile = pd.read_pickle('cv_results/actions_e20/errors_search3.p')
@@ -63,7 +63,7 @@ col_names = list(param_grid.iterkeys())
 #df_params = pd.DataFrame(columns = col_names)   
 df_params = pd.read_pickle('cv_results/actions_e20/params_search3.p')
 
-for cnt, p in enumerate(list(ParameterGrid(param_grid)), 12):
+for cnt, p in enumerate(list(ParameterGrid(param_grid)), 14):
     print cnt
     param.update(p)
 #store errors from each month by doing cv
