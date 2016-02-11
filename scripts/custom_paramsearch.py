@@ -49,11 +49,11 @@ xgbInput.split_data(update_trainDf=True)
 param = {'num_class': 12, 'silent': 1, 'objective': 'multi:softprob'}
 
 param_grid = {}
-param_grid['eta'] = [.13]
+param_grid['eta'] = [.10]
 param_grid['max_depth'] = [6]
 param_grid['subsample'] = [.9]
 param_grid['colsample_bytree'] = [.45]
-nrounds = 120
+nrounds = 150
 
 #set up dataframe to store mean/stdev. after cross validation
 cv_tofile = pd.read_pickle('cv_results/actions_e20/errors_search3.p')
@@ -63,7 +63,7 @@ col_names = list(param_grid.iterkeys())
 #df_params = pd.DataFrame(columns = col_names)   
 df_params = pd.read_pickle('cv_results/actions_e20/params_search3.p')
 
-for cnt, p in enumerate(list(ParameterGrid(param_grid)), 7):
+for cnt, p in enumerate(list(ParameterGrid(param_grid)), 12):
     print cnt
     param.update(p)
 #store errors from each month by doing cv
@@ -79,7 +79,7 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 7):
                     missing = -1)
         #evallist = [(dtrain, 'train'), (dvalid, 'eval')]
         evallist = [(dvalid, 'eval')]
-        bst = xgb.train(param, dtrain, nrounds, evallist, feval = calc_ndcg.eval_foreign, evals_result = results)
+        bst = xgb.train(param, dtrain, nrounds, evallist, feval = calc_ndcg.eval_all, evals_result = results)
         cv_valid = pd.concat([cv_valid, pd.Series(results['eval']['error'], name = str(cv_valid.shape[1]))], axis = 1)
         #cv_ndf = pd.concat([cv_valid, pd.Series(results['eval']['error3']['ndf'], name = str(cv_valid.shape[1]))], axis = 1)
         #cv_all = pd.concat([cv_valid, pd.Series(results['eval']['error3']['all'], name = str(cv_valid.shape[1]))], axis = 1)
@@ -95,5 +95,5 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 7):
     
 #output the parameters that were used
     df_params = df_params.append(p, ignore_index= True)
-    df_params.iloc[-1,-1] = 'actions3_nodrop, sklearn_kfold'
+    df_params.iloc[-1,-1] = 'nodrop, sklearn_kfold, all'
     pd.to_pickle(df_params, 'cv_results/actions_e20/params_search3.p')
