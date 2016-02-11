@@ -49,8 +49,9 @@ def eval_ndfUs(cls_prob, dtrain):
 #only retain the labels for users who chose US or NDF
     users_idx = np.logical_or(labels == 7, labels == 10)
     labels = labels[users_idx]
+    pred = pred[users_idx,:]
     labels = labels[:, None]
-    return 'US/NDF error', 1-ndcg(top_k, labels)/len(labels)
+    return 'US/NDF error', 1-ndcg(pred, labels)/len(labels)
 
 def eval_foreign(cls_prop, dtrain):
     """Calculate ndcg error for the users who chose destinations outside the US."""
@@ -62,7 +63,7 @@ def eval_foreign(cls_prop, dtrain):
     labels = labels[users_idx]
     pred = pred[users_idx,:]
     labels = labels[:, None]
-    return 'Foreign error', 1-ndcg(top_k, labels)/len(labels)
+    return 'Foreign error', 1-ndcg(pred, labels)/len(labels)
 
 # def us_misclf(cls_prob, dtrain):
 #     """Find percent of misclassification at the first position for users who chose US.
