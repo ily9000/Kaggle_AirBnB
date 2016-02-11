@@ -40,7 +40,7 @@ action_cnts.fillna(0, inplace=True)
 
 #sum booking requests, message posts, and p4
 #booking_request has 2 actions: pending and at_checkpoint
-a_details = ['message_post', 'pending_pending|at_checkpoint',  'p4', 'click1']
+a_details = ['message_post', 'pending_pending|at_checkpoint',  'p4', 'payout']
 for a in a_details:
     action_cnts[a + 'total'] = action_cnts.loc[:, action_cnts.columns.str.contains(a)].sum(axis = 1)
     

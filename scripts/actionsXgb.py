@@ -43,7 +43,7 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid))):
 #store errors from each month by doing cv
     dtrain = xgb.DMatrix(xgbInput.sesstrain_X, label = xgbInput.sesstrain_Y,
                 missing = -1)
-    cv = xgb.cv(param, dtrain, nrounds, nfold=10, feval= calc_ndcg.eval_ndfUs, early_stopping_rounds= 17)
+    cv = xgb.cv(param, dtrain, nrounds, nfold=10, feval= calc_ndcg.eval_all, early_stopping_rounds= 10)
 
 #store parameters and results in respective dataframes
 #append the last row (lowest error) of the results 
