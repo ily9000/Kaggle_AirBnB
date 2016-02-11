@@ -29,49 +29,39 @@ xgbInput.get_sessionsFtr()
 xgbInput.users_ftrEng()
 xgbInput.one_hot()
 #xgbInput.binarize_targets()
-xgbInput.split_data(update_trainDf=True)
+xgbInput.split_bySess()
 
 param = {'num_class': 12, 'silent': 1, 'objective': 'multi:softprob'}
 
 param_grid = {}
 param_grid['eta'] = [.13]
-param_grid['max_depth'] = [5, 6]
+param_grid['max_depth'] = [6]
 param_grid['subsample'] = [.6, .9, 1]
-param_grid['colsample_bytree'] = [.5, .7, 1]
+param_grid['colsample_bytree'] = [.7, 1]
 nrounds = 200
 
-#set up dataframe to store mean/stdev. after cross validation
-cv_tofile = pd.read_pickle('cv_results/actions_e20/errors_search3.p')
+#set up dataframe to store cross-validation results form each iteration
+col_names = ['test-error-mean', 'test-error-std', 'train-error-mean', 
+            'train-error-std', 'num_boost_rounds']
+df_cv = pd.DataFrame(columns = col_names)
 
 #set up dataframe to store the parameters used for cross validation
 col_names = list(param_grid.iterkeys())
 df_params = pd.DataFrame(columns = col_names)   
-#df_params = pd.read_pickle('cv_results/actions_e20/params_search3.p')
 
-for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
-    print cnt
+for cnt, p in enumerate(list(ParameterGrid(param_grid))):
     param.update(p)
 #store errors from each month by doing cv
-    cv_valid = pd.DataFrame()
-    err_out = {}
-    results = {}
-    dtrain = xgb.DMatrix(xgbInput.train_X, label = xgbInput.train_Y,
+    dtrain = xgb.DMatrix(xgbInput.sesstrain_X, label = xgbInput.sesstrain_Y,
                 missing = -1)
-    #evallist = [(dtrain, 'train'), (dvalid, 'eval')]
-    bst= xgb.cv(param, dtrain, nrounds, nfold=10, feval= calc_ndcg.eval_all, evals_result= results, early_stopping_rounds= 10)
-    cv_valid = pd.concat([cv_valid, pd.Series(results['eval']['error'], name = str(cv_valid.shape[1]))], axis = 1)
-    #cv_ndf = pd.concat([cv_valid, pd.Series(results['eval']['error3']['ndf'], name = str(cv_valid.shape[1]))], axis = 1)
-    #cv_all = pd.concat([cv_valid, pd.Series(results['eval']['error3']['all'], name = str(cv_valid.shape[1]))], axis = 1)
+    cv = xgb.cv(param, dtrain, nrounds, nfold=10, feval= calc_ndcg.eval_all, early_stopping_rounds= 10)
 
-    pd.to_pickle(cv_valid, 'cv_results/actionsXgb/search1/res' + str(cnt) +'.p')
-    
-#take the mean and standard deviation of training and validation errors and pickle those results                                 
-    err_out['valid_mean' + str(cnt)] = cv_valid.astype('float').mean(axis = 1)
-    err_out['valid_std' + str(cnt)] = cv_valid.astype('float').std(axis = 1)
-        
-    cv_tofile = pd.concat([cv_tofile, pd.DataFrame(err_out)], axis = 1)
-    pd.to_pickle(cv_tofile, 'cv_results/actionsXgb/errors_search1.p')
-    
-#output the parameters that were used
+#store parameters and results in respective dataframes
+#append the last row (lowest error) of the results 
+#index contains the number of iterations
+    df_cv = df_cv.append(cv.iloc[-1,:], ignore_index= True)
+    df_cv.iloc[-1, -1] = cv.index[-1]
+
     df_params = df_params.append(p, ignore_index= True)
-    pd.to_pickle(df_params, 'cv_results/actionsXgb/params_search1.p')
+    df_cv.to_pickle('cv_results/actionsXgb/errors_search1.p')        
+    df_params.to_pickle(df_params, 'cv_results/actionsXgb/params_search1.p')
