@@ -61,17 +61,22 @@ for cnt, p in enumerate(list(ParameterGrid(param_grid)), 6):
                     missing = -1)
         dvalid = xgb.DMatrix(xgbInput.train_X[valid_indx], label = xgbInput.train_Y[valid_indx],
                     missing = -1)
-        evallist = [(dtrain, 'train'), (dvalid, 'eval')]
-        bst = xgb.train(param, dtrain, nrounds, evallist, feval = calc_ndcg.evalerror, evals_result = results)
-        cv_train = pd.concat([cv_train, pd.Series(results['train']['error'])], axis = 1)
+        #evallist = [(dtrain, 'train'), (dvalid, 'eval')]
+        evallist = [(dvalid, 'eval')]
+        bst = xgb.train(param, dtrain, nrounds, evallist, feval = [calc_ndcg.evalerror, calc_ndcg.eval_ndfUs, calc_ndcg.eval_foreign], evals_result = results)
+        cv_usNdf = pd.concat([cv_train, pd.Series(results['eval']['US/NDF error'], name = str(cv_valid.shape[1]))], axis = 1)
+        cv_foreign = pd.concat([cv_train, pd.Series(results['eval']['foreign error'], name = str(cv_valid.shape[1]))], axis = 1)
         cv_valid = pd.concat([cv_valid, pd.Series(results['eval']['error'], name = str(cv_valid.shape[1]))], axis = 1)
 
     pd.to_pickle(cv_valid, 'cv_results/actions_e20/search3/res' + str(cnt) +'.p')
-#take the mean and standard deviation of training and validation error and pickle those results
-    err_out['train-error-mean' + str(cnt)] = cv_train.astype('float').mean(axis = 1)
-    err_out['train-error-std' + str(cnt)] = cv_train.astype('float').std(axis = 1)
-    err_out['valid-error-mean' + str(cnt)] = cv_valid.astype('float').mean(axis = 1)
-    err_out['valid-error-std' + str(cnt)] = cv_valid.astype('float').std(axis = 1)
+    
+#take the mean and standard deviation of training and validation errors and pickle those results    
+    err_out_names = [['usNdf-error-mean', 'usNdf-error-std'], ['foreign-error-mean', 'foreign-error-std'], \
+                    ['valid-error-mean', 'valid-error-std']]    
+    for x in err_out_names:                                                                                                       
+        err_out[x[0] + str(cnt)] = cv_usNdf.astype('float').mean(axis = 1)
+        err_out[x[1] + str(cnt)] = cv_train.astype('float').std(axis = 1)
+        
     cv_tofile = pd.concat([cv_tofile, pd.DataFrame(err_out)], axis = 1)
     pd.to_pickle(cv_tofile, 'cv_results/actions_e20/errors_search3.p')
     
